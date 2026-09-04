@@ -1,4 +1,4 @@
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
-rootProject.name = "react-sample"
+rootProject.name = "react-sample-be"
