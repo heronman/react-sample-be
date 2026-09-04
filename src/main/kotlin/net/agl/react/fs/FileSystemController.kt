@@ -1,5 +1,6 @@
 package net.agl.react.fs
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,12 +22,8 @@ data class FileEntry(
     val broken: Boolean,
     val size: Long,
     val lastModified: Long,
-)
-
-data class DirectoryListing(
-    val path: String,
-    val parent: String?,
-    val entries: List<FileEntry>,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val items: List<FileEntry>? = null,
 )
 
 data class FileContent(
@@ -47,16 +44,17 @@ class FileSystemController(
     private val maxReadBytes = 1_000_000
 
     @GetMapping("/get")
-    fun get(@RequestParam(defaultValue = "") path: String): DirectoryListing {
+    fun get(@RequestParam(defaultValue = "") path: String): FileEntry {
         val target = resolveSafe(path)
-        if (!Files.isDirectory(target)) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Not a directory: $path")
+        val entry = toEntryOrNull(target)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "No such file or directory: $path")
+        if (!entry.isDirectory) {
+            return entry
         }
-        val entries = Files.newDirectoryStream(target).use { stream ->
+        val children = Files.newDirectoryStream(target).use { stream ->
             stream.mapNotNull(::toEntryOrNull).sortedWith(compareBy({ !it.isDirectory }, { it.name.lowercase() }))
         }
-        val parent = target.parent?.takeIf { it.startsWith(rootDir) }?.let { rootDir.relativize(it).toString() }
-        return DirectoryListing(relativePath(target), parent, entries)
+        return entry.copy(items = children)
     }
 
     @GetMapping("/read")
