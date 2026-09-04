@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.spring)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.dependency.management)
+    alias(libs.plugins.springdoc.openapi.gradle)
 }
 
 group = "net.agl.react"
@@ -17,6 +18,10 @@ dependencies {
     implementation(platform(libs.spring.cloud.bom))
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    // On bootRun's classpath (so the forked run used to generate docs/openapi.json
+    // has springdoc's auto-config) but excluded from bootJar, so it never ships or
+    // exposes /v3/api-docs, /swagger-ui.html at runtime.
+    developmentOnly(libs.springdoc.openapi.webmvc.ui)
 
     // Kotlin add-ons
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -38,4 +43,9 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+openApi {
+    outputDir.set(layout.projectDirectory.dir("docs"))
+    outputFileName.set("openapi.json")
 }
