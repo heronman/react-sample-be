@@ -1,0 +1,11 @@
+services:
+  build:
+    image: eclipse-temurin:21-jdk-jammy
+    working_dir: /workspace
+    environment:
+      GRADLE_USER_HOME: /gradle-cache
+    volumes:
+      - .:/workspace
+      - ./.docker-gradle-cache:/gradle-cache
+    entrypoint: ["./gradlew"]
+    command: ["build"]
