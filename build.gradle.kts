@@ -49,3 +49,27 @@ openApi {
     outputDir.set(layout.projectDirectory.dir("docs"))
     outputFileName.set("openapi.json")
 }
+
+// Runs a Gradle task inside the ephemeral Docker build container (see
+// docker-compose.build.yml), for hosts without a local JDK/Gradle install.
+fun registerDockerTask(name: String, taskDescription: String, dockerizedTask: String) {
+    tasks.register<Exec>(name) {
+        group = "docker"
+        description = taskDescription
+        val args = mutableListOf("docker", "compose", "-f", "docker-compose.build.yml", "run", "--rm")
+        if (!System.getProperty("os.name").lowercase().contains("win")) {
+            val uid = ProcessBuilder("id", "-u").start().inputStream.bufferedReader().readText().trim()
+            val gid = ProcessBuilder("id", "-g").start().inputStream.bufferedReader().readText().trim()
+            args += listOf("-u", "$uid:$gid")
+        }
+        args += listOf("build", dockerizedTask)
+        commandLine(args)
+    }
+}
+
+registerDockerTask("dockerBuild", "Runs the Gradle build inside the Docker build container.", "build")
+registerDockerTask(
+    "dockerGenerateOpenApiDocs",
+    "Generates docs/openapi.json inside the Docker build container.",
+    "generateOpenApiDocs",
+)

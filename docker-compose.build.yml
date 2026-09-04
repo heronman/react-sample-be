@@ -7,5 +7,10 @@ services:
     volumes:
       - .:/workspace
       - ./.docker-gradle-cache:/gradle-cache
+      # Shadows the project-local .gradle/ dir with an isolated copy so this
+      # never contends for its lock files with a Gradle daemon on the host
+      # (e.g. one invoking this via the dockerBuild/dockerGenerateOpenApiDocs
+      # host tasks).
+      - ./.docker-gradle-project-cache:/workspace/.gradle
     entrypoint: ["./gradlew"]
     command: ["build"]

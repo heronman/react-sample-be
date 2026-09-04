@@ -6,6 +6,7 @@ build/
 
 ### Docker build ###
 .docker-gradle-cache/
+.docker-gradle-project-cache/
 
 ### IntelliJ IDEA ###
 *.iws
