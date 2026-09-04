@@ -1,0 +1,8 @@
+# Ignore everything in this directory except what's explicitly allowlisted below.
+*
+!.gitignore
+!vcs.xml
+!gradle.xml
+!kotlinc.xml
+!codeStyles/
+!codeStyles/**
